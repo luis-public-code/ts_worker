@@ -1,0 +1,34 @@
+name: Setup Tailscale as Exit Node
+
+on:
+  workflow_dispatch:  
+
+jobs:
+  install-tailscale:
+    runs-on: ubuntu-latest 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Add Tailscale GPG Key and Repo
+        run: |
+          curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+          curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
+
+      - name: Install Tailscale
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tailscale
+
+      - name: Start Tailscale (requires authkey)
+        run: |
+          sudo tailscale up --authkey=${{ secrets.TS_AUTHKEY }} --advertise-exit-node --hostname=github-exit-node
+          wait
+
+      - name: Show Tailscale IP
+        run: tailscale ip -4
+
+      - name: Keep Job Running
+        run: |
+          echo "Tailscale is running. Keeping GitHub Actions job alive..."
+          tail -f /dev/null
