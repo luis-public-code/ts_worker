@@ -15,6 +15,12 @@ jobs:
           curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
           curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
 
+      - name: Enable IP Forwarding
+        run: |
+          echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
+          echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
+          sudo sysctl -p /etc/sysctl.d/99-tailscale.conf
+
       - name: Install Tailscale
         run: |
           sudo apt-get update
@@ -23,7 +29,6 @@ jobs:
       - name: Start Tailscale (requires authkey)
         run: |
           sudo tailscale up --authkey=${{ secrets.TS_AUTHKEY }} --advertise-exit-node --hostname=github-exit-node
-          wait
 
       - name: Show Tailscale IP
         run: tailscale ip -4
