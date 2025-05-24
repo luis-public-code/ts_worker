@@ -2,6 +2,8 @@ name: Setup Tailscale as Exit Node
 
 on:
   workflow_dispatch:  
+  schedule:
+    - cron: '5 */5 * * *'
 
 jobs:
   install-tailscale:
